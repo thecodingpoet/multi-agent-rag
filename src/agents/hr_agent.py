@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from base_rag_agent import BaseRAGAgent
 from dotenv import load_dotenv
+
+from agents.base_rag_agent import BaseRAGAgent
 
 load_dotenv()
 
@@ -30,21 +31,3 @@ class HRAgent(BaseRAGAgent):
     def get_agent_name(self) -> str:
         """Return the name of this agent."""
         return "HR"
-
-
-if __name__ == "__main__":
-    hr_agent = HRAgent()
-    hr_agent.initialize()
-
-    test_queries = [
-        "How many vacation days do employees get?",
-        "What is the remote work policy?",
-        "How does the performance review process work?",
-    ]
-
-    for query in test_queries:
-        print(f"\n{'=' * 80}")
-        print(f"Query: {query}")
-        print(f"{'=' * 80}")
-        result = hr_agent.query(query)
-        print(f"\nAnswer: {result['answer']}")

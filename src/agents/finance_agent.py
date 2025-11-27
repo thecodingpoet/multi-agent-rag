@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from base_rag_agent import BaseRAGAgent
 from dotenv import load_dotenv
+
+from agents.base_rag_agent import BaseRAGAgent
 
 load_dotenv()
 
@@ -30,23 +31,3 @@ class FinanceAgent(BaseRAGAgent):
     def get_agent_name(self) -> str:
         """Return the name of this agent."""
         return "Finance"
-
-
-# Main execution
-if __name__ == "__main__":
-    print("Initializing Finance RAG Agent...")
-    finance_agent = FinanceAgent()
-    finance_agent.initialize()
-
-    test_queries = [
-        "What is the expense reimbursement policy?",
-        "How do I submit travel expenses?",
-        "What are the purchasing approval limits?",
-    ]
-
-    for query in test_queries:
-        print(f"\n{'=' * 80}")
-        print(f"Query: {query}")
-        print(f"{'=' * 80}")
-        result = finance_agent.query(query)
-        print(f"\nAnswer: {result['answer']}")

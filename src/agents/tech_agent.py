@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from base_rag_agent import BaseRAGAgent
 from dotenv import load_dotenv
+
+from agents.base_rag_agent import BaseRAGAgent
 
 load_dotenv()
 
@@ -30,23 +31,3 @@ class TechAgent(BaseRAGAgent):
     def get_agent_name(self) -> str:
         """Return the name of this agent."""
         return "Tech"
-
-
-# Main execution
-if __name__ == "__main__":
-    print("Initializing Tech RAG Agent...")
-    tech_agent = TechAgent()
-    tech_agent.initialize()
-
-    test_queries = [
-        "How do I reset my email password?",
-        "What is the VPN setup process?",
-        "How do I request a laptop replacement?",
-    ]
-
-    for query in test_queries:
-        print(f"\n{'=' * 80}")
-        print(f"Query: {query}")
-        print(f"{'=' * 80}")
-        result = tech_agent.query(query)
-        print(f"\nAnswer: {result['answer']}")
