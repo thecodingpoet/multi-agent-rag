@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Optional
@@ -51,6 +52,7 @@ class BaseRAGAgent(ABC):
         self.vector_store: Optional[FAISS] = None
         self.agent = None
         self.retriever = None
+        self.logger = logging.getLogger(f"agents.{self.get_agent_name().lower()}")
 
     @abstractmethod
     def get_agent_name(self) -> str:
@@ -93,9 +95,7 @@ class BaseRAGAgent(ABC):
 
         Path(self.vector_store_path).parent.mkdir(parents=True, exist_ok=True)
         self.vector_store.save_local(str(self.vector_store_path))
-        print(
-            f"[{self.get_agent_name()}] Vector store saved to {self.vector_store_path}"
-        )
+        self.logger.debug(f"Vector store saved to {self.vector_store_path}")
 
     def load_vector_store(self) -> bool:
         """
@@ -110,9 +110,7 @@ class BaseRAGAgent(ABC):
                 self.embeddings,
                 allow_dangerous_deserialization=True,
             )
-            print(
-                f"[{self.get_agent_name()}] Vector store loaded from {self.vector_store_path}"
-            )
+            self.logger.debug(f"Vector store loaded from {self.vector_store_path}")
             return True
         return False
 
@@ -154,23 +152,25 @@ class BaseRAGAgent(ABC):
 
     def initialize(self):
         """Initialize the RAG agent by loading or creating vector store."""
-        print(f"[{self.get_agent_name()}] Initializing RAG Agent...")
+        agent_name = self.get_agent_name()
+
+        self.logger.info(f"Initializing {agent_name} agent...")
 
         loaded = self.load_vector_store()
 
         if not loaded:
-            print(f"[{self.get_agent_name()}] Creating new vector store...")
+            self.logger.info("Creating new vector store...")
             documents = self.load_documents()
-            print(f"[{self.get_agent_name()}] Loaded {len(documents)} documents.")
+            self.logger.debug(f"Loaded {len(documents)} documents")
 
             chunks = self.split_documents(documents)
-            print(f"[{self.get_agent_name()}] Split into {len(chunks)} chunks.")
+            self.logger.debug(f"Split into {len(chunks)} chunks")
 
             self.vector_store = self.create_vector_store(chunks)
             self.save_vector_store()
 
         self.build_agent()
-        print(f"[{self.get_agent_name()}] Agent initialized successfully!")
+        self.logger.info(f"{agent_name} agent ready")
 
     def query(self, question: str) -> dict:
         """

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -11,7 +12,6 @@ from agents.tech_agent import TechAgent
 
 load_dotenv()
 
-# Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
@@ -27,9 +27,10 @@ class Orchestrator:
         """
         self.llm_model = llm_model
         self.orchestrator = None
+        self.logger = logging.getLogger("agents.orchestrator")
 
         # Initialize specialist agents
-        print("Initializing specialist agents...")
+        self.logger.info("Initializing specialist agents...")
         self.hr_agent = HRAgent()
         self.hr_agent.initialize()
 
@@ -39,12 +40,11 @@ class Orchestrator:
         self.tech_agent = TechAgent()
         self.tech_agent.initialize()
 
-        print("All specialist agents initialized!")
+        self.logger.info("All specialist agents initialized")
 
     def build_orchestrator(self):
         """Build the orchestrator agent with wrapped specialist tools."""
 
-        # Wrap each specialist agent as a tool
         @tool
         def handle_hr_query(request: str) -> str:
             """Handle HR-related queries about policies, benefits, vacation, remote work, and performance reviews.
@@ -96,7 +96,6 @@ class Orchestrator:
             result = self.tech_agent.query(request)
             return result["answer"]
 
-        # Create orchestrator prompt
         orchestrator_prompt = (
             "You are a helpful company assistant that coordinates specialist agents. "
             "You have access to three specialist teams:\n"
@@ -119,21 +118,15 @@ class Orchestrator:
             system_prompt=orchestrator_prompt,
         )
 
-        print("Orchestrator agent created successfully!")
+        self.logger.info("Orchestrator agent ready")
 
     def initialize(self):
         """Initialize the complete multi-agent system."""
-        print("\n" + "=" * 80)
-        print("Initializing Multi-Agent RAG System")
-        print("=" * 80)
+        self.logger.info("Initializing Orchestrator...")
 
         self.build_orchestrator()
 
-        print("\n" + "=" * 80)
-        print(
-            "System ready! You can now ask questions across HR, Finance, and Tech domains."
-        )
-        print("=" * 80 + "\n")
+        self.logger.info("System ready")
 
     def query(self, question: str) -> dict:
         """
@@ -158,26 +151,3 @@ class Orchestrator:
             "answer": final_message.content,
             "messages": result["messages"],
         }
-
-
-if __name__ == "__main__":
-    # Initialize the multi-agent system
-    orchestrator = Orchestrator()
-    orchestrator.initialize()
-
-    # Test queries across different domains
-    test_queries = [
-        # Single domain queries
-        "How many vacation days do I get?",
-        "What is the expense reimbursement policy?",
-        "How do I reset my email password?",
-        # Multi-domain query
-        "I need to submit travel expenses for a business trip and my VPN isn't working. Can you help?",
-    ]
-
-    for query in test_queries:
-        print(f"\n{'=' * 80}")
-        print(f"Query: {query}")
-        print(f"{'=' * 80}")
-        result = orchestrator.query(query)
-        print(f"\nAnswer: {result['answer']}")
