@@ -107,6 +107,10 @@ class Orchestrator:
             "- Route to the appropriate specialist agent(s)\n"
             "- If the request spans multiple domains, call multiple specialists\n"
             "- Synthesize the responses into a clear, helpful answer\n\n"
+            "IMPORTANT: If a question is outside the scope of HR, Finance, or Tech support "
+            "(e.g., general knowledge, personal advice, unrelated topics), politely decline and explain "
+            "that you can only help with company HR policies, finance procedures, and IT support matters. "
+            "Do NOT attempt to answer out-of-scope questions.\n\n"
             "Always provide accurate information from the specialist agents."
         )
 
