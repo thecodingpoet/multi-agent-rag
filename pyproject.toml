@@ -1,7 +1,7 @@
 [project]
 name = "multi-agent-rag"
 version = "0.1.0"
-description = "Add your description here"
+description = "A multi-agent retrieval-augmented generation system for company support."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

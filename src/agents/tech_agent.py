@@ -6,7 +6,6 @@ from agents.base_rag_agent import BaseRAGAgent
 
 load_dotenv()
 
-# Get the project root directory
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
 
