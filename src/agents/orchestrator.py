@@ -31,10 +31,15 @@ class Orchestrator:
         self.orchestrator = None
         self.logger = logging.getLogger("agents.orchestrator")
 
+        self.logger.info("Setting up Langfuse handler and evaluator...")
+
         self.langfuse_handler = CallbackHandler()
         self.evaluator = ResponseEvaluator()
 
+        self.logger.info("Langfuse handler and evaluator ready")
+
         self.logger.info("Initializing specialist agents...")
+
         self.hr_agent = HRAgent()
         self.hr_agent.initialize()
 
