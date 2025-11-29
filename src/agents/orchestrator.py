@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain.tools import tool
+from langfuse.langchain import CallbackHandler
 
 from agents.finance_agent import FinanceAgent
 from agents.hr_agent import HRAgent
@@ -29,7 +30,8 @@ class Orchestrator:
         self.orchestrator = None
         self.logger = logging.getLogger("agents.orchestrator")
 
-        # Initialize specialist agents
+        self.langfuse_handler = CallbackHandler()
+
         self.logger.info("Initializing specialist agents...")
         self.hr_agent = HRAgent()
         self.hr_agent.initialize()
@@ -146,7 +148,8 @@ class Orchestrator:
             raise ValueError("Orchestrator not initialized. Call initialize() first.")
 
         result = self.orchestrator.invoke(
-            {"messages": [{"role": "user", "content": question}]}
+            {"messages": [{"role": "user", "content": question}]},
+            config={"callbacks": [self.langfuse_handler]},
         )
 
         final_message = result["messages"][-1]
