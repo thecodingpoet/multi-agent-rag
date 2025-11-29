@@ -1,0 +1,59 @@
+{
+  "test_queries": [
+    {
+      "query": "How many vacation days do I get per year?",
+      "expected_category": "hr",
+      "description": "Basic HR policy question"
+    },
+    {
+      "query": "Can I work remotely full-time?",
+      "expected_category": "hr",
+      "description": "Remote work policy question"
+    },
+    {
+      "query": "What's the process for submitting expense reimbursements?",
+      "expected_category": "finance",
+      "description": "Finance policy question"
+    },
+    {
+      "query": "When do employees get paid and what's the payroll schedule?",
+      "expected_category": "finance",
+      "description": "Payroll information question"
+    },
+    {
+      "query": "I forgot my email password. How do I reset it?",
+      "expected_category": "tech",
+      "description": "IT support question"
+    },
+    {
+      "query": "How do I get VPN access for working from home?",
+      "expected_category": "tech",
+      "description": "VPN access question"
+    },
+    {
+      "query": "My laptop is broken. How do I request a replacement?",
+      "expected_category": "tech",
+      "description": "Hardware replacement question"
+    },
+    {
+      "query": "How do I submit travel expenses and what's the VPN setup for remote work?",
+      "expected_category": "finance,tech",
+      "description": "Multi-agent: requires both finance and tech agents"
+    },
+    {
+      "query": "What are the benefits for new employees and how does payroll work?",
+      "expected_category": "hr,finance",
+      "description": "Multi-agent: requires both HR and finance agents"
+    },
+    {
+      "query": "Can I expense a laptop and how do I get it set up with required software?",
+      "expected_category": "finance,tech",
+      "description": "Multi-agent: purchasing approval (finance) and installation (tech)"
+    },
+    {
+      "query": "What's the capital of France?",
+      "expected_category": "out_of_scope",
+      "description": "Edge case: completely unrelated question that should be rejected"
+    }
+  ]
+}
