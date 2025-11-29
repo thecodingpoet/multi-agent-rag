@@ -35,7 +35,7 @@ class ResponseEvaluator:
 
         self.logger.info(f"Response evaluator initialized with {judge_model}")
 
-    def create_evaluation_prompt(self, question: str, answer: str) -> str:
+    def _create_evaluation_prompt(self, question: str, answer: str) -> str:
         """
         Create the evaluation prompt for the judge LLM.
 
@@ -75,7 +75,7 @@ class ResponseEvaluator:
             Dictionary with 'score' (1-10) and 'reasoning'
         """
         try:
-            prompt = self.create_evaluation_prompt(question, answer)
+            prompt = self._create_evaluation_prompt(question, answer)
 
             response = self.llm.invoke(prompt)
             content = response.content.strip()
