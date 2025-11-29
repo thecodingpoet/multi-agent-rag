@@ -36,7 +36,7 @@ def setup_logging(verbose: bool) -> logging.Logger:
     """
     log_level = logging.DEBUG if verbose else logging.WARNING
 
-    for component in ["hr", "finance", "tech", "orchestrator"]:
+    for component in ["hr", "finance", "tech", "orchestrator", "evaluator"]:
         setup_logger(f"agents.{component}", level=log_level)
 
     return setup_logger("cli", level=log_level)

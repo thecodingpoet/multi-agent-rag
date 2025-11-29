@@ -7,6 +7,7 @@ from langchain.chat_models import init_chat_model
 from langchain.tools import tool
 from langfuse.langchain import CallbackHandler
 
+from agents.evaluator import ResponseEvaluator
 from agents.finance_agent import FinanceAgent
 from agents.hr_agent import HRAgent
 from agents.tech_agent import TechAgent
@@ -31,6 +32,7 @@ class Orchestrator:
         self.logger = logging.getLogger("agents.orchestrator")
 
         self.langfuse_handler = CallbackHandler()
+        self.evaluator = ResponseEvaluator()
 
         self.logger.info("Initializing specialist agents...")
         self.hr_agent = HRAgent()
@@ -153,8 +155,19 @@ class Orchestrator:
         )
 
         final_message = result["messages"][-1]
+        answer = final_message.content
+
+        trace_id = self.langfuse_handler.last_trace_id
+        if trace_id:
+            evaluation = self.evaluator.evaluate(question, answer)
+            self.evaluator.save_to_langfuse(
+                trace_id, evaluation["score"], evaluation["reasoning"]
+            )
+            self.logger.info(f"Response evaluated: score={evaluation['score']}")
+        else:
+            self.logger.warning("No trace_id available for evaluation")
 
         return {
-            "answer": final_message.content,
+            "answer": answer,
             "messages": result["messages"],
         }
