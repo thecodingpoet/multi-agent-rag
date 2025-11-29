@@ -12,6 +12,7 @@ import sys
 
 from agents.orchestrator import Orchestrator
 from utils.logger import setup_logger
+from utils.spinner import Spinner
 
 
 def print_banner():
@@ -65,10 +66,14 @@ def handle_query(
     if not query:
         return True
 
+    spinner = Spinner("Thinking")
     try:
+        spinner.start()
         result = orchestrator.query(query)
+        spinner.stop()
         print(f"Assistant: {result['answer']}\n")
     except Exception as e:
+        spinner.stop()
         print(f"\n❌ Error: {str(e)}\n")
         logger.error(f"Error processing query: {str(e)}")
 
