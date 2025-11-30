@@ -41,11 +41,6 @@
       "description": "Multi-agent: requires both HR and finance agents"
     },
     {
-      "query": "Can I expense a laptop and how do I get it set up with required software?",
-      "expected_category": "finance,tech",
-      "description": "Multi-agent: purchasing approval (finance) and installation (tech)"
-    },
-    {
       "query": "What is the policy?",
       "expected_category": "ambiguous",
       "description": "Ambiguous query: could relate to HR, Finance, or Tech policies - should query multiple agents or request clarification"

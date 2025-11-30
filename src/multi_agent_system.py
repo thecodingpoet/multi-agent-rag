@@ -66,7 +66,7 @@ def handle_query(
     if not query:
         return True
 
-    spinner = Spinner("Thinking")
+    spinner = Spinner("Processing")
     try:
         spinner.start()
         result = orchestrator.query(query)

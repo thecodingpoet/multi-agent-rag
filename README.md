@@ -7,9 +7,10 @@ A multi-agent retrieval-augmented generation (RAG) system with specialized agent
 - 🤖 **Specialized Agents**: Separate RAG agents for HR, Finance, and Tech domains
 - 🎯 **Orchestrator**: Intelligent routing to the appropriate specialist agent(s)
 - 🔀 **Hybrid Ambiguity Handling**: Multi-agent queries for cross-domain ambiguous questions; clarification requests for extremely vague queries
+- 🛡️ **Hallucination Prevention**: Enforced tool usage - orchestrator must query specialists, cannot answer from its own knowledge
 - 📦 **Vector Stores**: FAISS-based semantic search for each domain
 - 📊 **Observability**: Full tracing with Langfuse to debug misrouted questions and track agent performance
-- ⭐ **Auto-Evaluation**: Automatic quality scoring (1-10) for every response using LLM-as-a-judge, tracked in Langfuse
+- ⭐ **Auto-Evaluation**: Automatic quality scoring (1-10) for every response using LLM-as-a-judge, tracked in Langfuse. Evaluations run asynchronously in background threads so responses return immediately
 
 ## Installation
 

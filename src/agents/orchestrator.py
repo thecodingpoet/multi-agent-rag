@@ -1,4 +1,5 @@
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -30,12 +31,7 @@ class Orchestrator:
         self.llm_model = llm_model
         self.orchestrator = None
         self.logger = logging.getLogger("agents.orchestrator")
-
-        self.logger.info("Setting up Langfuse handler and evaluator...")
-
-        self.evaluator = ResponseEvaluator()
-
-        self.logger.info("Langfuse handler and evaluator ready")
+        self.executor = ThreadPoolExecutor(max_workers=5, thread_name_prefix="eval")
 
         self.logger.info("Initializing specialist agents...")
 
@@ -214,11 +210,7 @@ class Orchestrator:
 
         trace_id = langfuse_handler.last_trace_id
         if trace_id:
-            evaluation = self.evaluator.evaluate(question, answer)
-            self.evaluator.save_to_langfuse(
-                trace_id, evaluation["score"], evaluation["reasoning"]
-            )
-            self.logger.info(f"Response evaluated: score={evaluation['score']}")
+            self.executor.submit(self._run_async_evaluation, trace_id, question, answer)
         else:
             self.logger.warning("No trace_id available for evaluation")
 
@@ -226,3 +218,22 @@ class Orchestrator:
             "answer": answer,
             "messages": result["messages"],
         }
+
+    def _run_async_evaluation(self, trace_id: str, question: str, answer: str):
+        """
+        Run evaluation in background thread.
+
+        Args:
+            trace_id: Langfuse trace ID
+            question: User's question
+            answer: System's answer
+        """
+        try:
+            evaluator = ResponseEvaluator()
+            evaluation = evaluator.evaluate(question, answer)
+            evaluator.save_to_langfuse(
+                trace_id, evaluation["score"], evaluation["reasoning"]
+            )
+            self.logger.info(f"Response evaluated: score={evaluation['score']}")
+        except Exception as e:
+            self.logger.exception(f"Evaluation failed for trace {trace_id}: {e}")
