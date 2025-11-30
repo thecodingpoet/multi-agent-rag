@@ -33,26 +33,40 @@ class Orchestrator:
 
         self.logger.info("Setting up Langfuse handler and evaluator...")
 
-        self.langfuse_handler = CallbackHandler()
         self.evaluator = ResponseEvaluator()
 
         self.logger.info("Langfuse handler and evaluator ready")
 
         self.logger.info("Initializing specialist agents...")
 
-        self.hr_agent = HRAgent()
-        self.hr_agent.initialize()
+        self.agents = {"hr": HRAgent(), "finance": FinanceAgent(), "tech": TechAgent()}
 
-        self.finance_agent = FinanceAgent()
-        self.finance_agent.initialize()
-
-        self.tech_agent = TechAgent()
-        self.tech_agent.initialize()
+        for name, agent in self.agents.items():
+            agent.initialize()
+            self.logger.info(f"{name.upper()} agent initialized")
 
         self.logger.info("All specialist agents initialized")
 
     def build_orchestrator(self):
         """Build the orchestrator agent with wrapped specialist tools."""
+
+        def safe_query(agent_name: str, request: str) -> str:
+            """
+            Safely query a specialist agent with error handling.
+
+            Args:
+                agent_name: Name of the agent to query ("hr", "finance", "tech")
+                request: The query to send to the agent
+
+            Returns:
+                The agent's answer or an error message
+            """
+            try:
+                result = self.agents[agent_name].query(request)
+                return result.get("answer", "No answer returned from agent.")
+            except Exception as e:
+                self.logger.exception(f"{agent_name.upper()} agent query failed: {e}")
+                return f"I encountered an error accessing the {agent_name.upper()} system. Please try again or contact support if the issue persists."
 
         @tool
         def handle_hr_query(request: str) -> str:
@@ -68,8 +82,7 @@ class Orchestrator:
 
             Input: Natural language HR question
             """
-            result = self.hr_agent.query(request)
-            return result["answer"]
+            return safe_query("hr", request)
 
         @tool
         def handle_finance_query(request: str) -> str:
@@ -85,8 +98,7 @@ class Orchestrator:
 
             Input: Natural language finance question
             """
-            result = self.finance_agent.query(request)
-            return result["answer"]
+            return safe_query("finance", request)
 
         @tool
         def handle_tech_query(request: str) -> str:
@@ -102,8 +114,7 @@ class Orchestrator:
 
             Input: Natural language technical support question
             """
-            result = self.tech_agent.query(request)
-            return result["answer"]
+            return safe_query("tech", request)
 
         @tool
         def request_clarification(clarification_question: str) -> str:
@@ -130,12 +141,16 @@ class Orchestrator:
             "1. HR team - handles policies, benefits, vacation, remote work, performance reviews, onboarding\n"
             "2. Finance team - handles expenses, reimbursements, purchasing, payroll, invoices\n"
             "3. Tech support - handles IT issues, software, hardware, access, passwords, network accounts\n\n"
+            "CRITICAL RULE - PREVENT HALLUCINATION:\n"
+            "You MUST use tools to answer. Do NOT answer from your own knowledge.\n"
+            "If no tool applies, use request_clarification.\n\n"
             "ROUTING STRATEGY:\n"
             "- For queries that clearly map to ONE specialist: call that specialist only\n"
             "- For queries that could relate to 2-3 specialists: call ALL relevant specialists and "
             "synthesize their responses into a comprehensive answer that presents all solutions\n"
             "- For extremely vague queries where you cannot determine ANY relevant specialist: "
-            "use request_clarification to ask the user for more context\n\n"
+            "use request_clarification to ask the user for more context\n"
+            "- Prefer the minimal number of specialist calls needed to confidently answer the question\n\n"
             "HANDLING AMBIGUOUS QUERIES:\n"
             "When a query is ambiguous (e.g., 'What is the policy?' could refer to HR, Finance, or Tech policies), "
             "call multiple specialists and structure your response like:\n"
@@ -187,15 +202,17 @@ class Orchestrator:
         if self.orchestrator is None:
             raise ValueError("Orchestrator not initialized. Call initialize() first.")
 
+        langfuse_handler = CallbackHandler()
+
         result = self.orchestrator.invoke(
             {"messages": [{"role": "user", "content": question}]},
-            config={"callbacks": [self.langfuse_handler]},
+            config={"callbacks": [langfuse_handler]},
         )
 
         final_message = result["messages"][-1]
         answer = final_message.content
 
-        trace_id = self.langfuse_handler.last_trace_id
+        trace_id = langfuse_handler.last_trace_id
         if trace_id:
             evaluation = self.evaluator.evaluate(question, answer)
             self.evaluator.save_to_langfuse(
