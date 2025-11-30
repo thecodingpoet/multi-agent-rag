@@ -105,29 +105,62 @@ class Orchestrator:
             result = self.tech_agent.query(request)
             return result["answer"]
 
+        @tool
+        def request_clarification(clarification_question: str) -> str:
+            """Request clarification from the user when a query is too ambiguous to route effectively.
+
+            Use this tool ONLY when:
+            - The query is extremely vague or unclear
+            - You cannot determine ANY relevant specialist to help
+            - The user's intent is completely unclear
+            - More context is absolutely needed to provide any useful information
+
+            For queries that could relate to multiple specialists (e.g., "What is the policy?" could refer
+            to HR, Finance, or Tech policies), DO NOT use this tool. Instead, call the relevant specialists
+            and present all possible solutions.
+
+            Input: A clarifying question to ask the user (e.g., "Are you asking about X or Y?")
+            Output: Returns the clarification question to present to the user
+            """
+            return clarification_question
+
         orchestrator_prompt = (
             "You are a helpful company assistant that coordinates specialist agents. "
             "You have access to three specialist teams:\n"
-            "1. HR team - handles policies, benefits, vacation, remote work, performance reviews\n"
+            "1. HR team - handles policies, benefits, vacation, remote work, performance reviews, onboarding\n"
             "2. Finance team - handles expenses, reimbursements, purchasing, payroll, invoices\n"
-            "3. Tech support - handles IT issues, software, hardware, access, passwords\n\n"
-            "For each user request:\n"
-            "- Identify which specialist(s) can best answer the question\n"
-            "- Route to the appropriate specialist agent(s)\n"
-            "- If the request spans multiple domains, call multiple specialists\n"
-            "- Synthesize the responses into a clear, helpful answer\n\n"
+            "3. Tech support - handles IT issues, software, hardware, access, passwords, network accounts\n\n"
+            "ROUTING STRATEGY:\n"
+            "- For queries that clearly map to ONE specialist: call that specialist only\n"
+            "- For queries that could relate to 2-3 specialists: call ALL relevant specialists and "
+            "synthesize their responses into a comprehensive answer that presents all solutions\n"
+            "- For extremely vague queries where you cannot determine ANY relevant specialist: "
+            "use request_clarification to ask the user for more context\n\n"
+            "HANDLING AMBIGUOUS QUERIES:\n"
+            "When a query is ambiguous (e.g., 'What is the policy?' could refer to HR, Finance, or Tech policies), "
+            "call multiple specialists and structure your response like:\n"
+            "'Here are the relevant policies from different areas:\n"
+            "**[Domain 1]:** [solution from specialist 1]\n"
+            "**[Domain 2]:** [solution from specialist 2]\n"
+            "Which area were you asking about?'\n\n"
             "IMPORTANT: If a question is outside the scope of HR, Finance, or Tech support "
             "(e.g., general knowledge, personal advice, unrelated topics), politely decline and explain "
             "that you can only help with company HR policies, finance procedures, and IT support matters. "
             "Do NOT attempt to answer out-of-scope questions.\n\n"
-            "Always provide accurate information from the specialist agents."
+            "Always provide accurate information from the specialist agents. Prefer being helpful "
+            "by querying multiple specialists over asking for clarification."
         )
 
         model = init_chat_model(self.llm_model, model_provider="openai", temperature=0)
 
         self.orchestrator = create_agent(
             model,
-            tools=[handle_hr_query, handle_finance_query, handle_tech_query],
+            tools=[
+                handle_hr_query,
+                handle_finance_query,
+                handle_tech_query,
+                request_clarification,
+            ],
             system_prompt=orchestrator_prompt,
         )
 

@@ -26,11 +26,6 @@
       "description": "IT support question"
     },
     {
-      "query": "How do I get VPN access for working from home?",
-      "expected_category": "tech",
-      "description": "VPN access question"
-    },
-    {
       "query": "My laptop is broken. How do I request a replacement?",
       "expected_category": "tech",
       "description": "Hardware replacement question"
@@ -49,6 +44,11 @@
       "query": "Can I expense a laptop and how do I get it set up with required software?",
       "expected_category": "finance,tech",
       "description": "Multi-agent: purchasing approval (finance) and installation (tech)"
+    },
+    {
+      "query": "What is the policy?",
+      "expected_category": "ambiguous",
+      "description": "Ambiguous query: could relate to HR, Finance, or Tech policies - should query multiple agents or request clarification"
     },
     {
       "query": "What's the capital of France?",

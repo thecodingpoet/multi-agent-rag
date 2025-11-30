@@ -6,6 +6,7 @@ A multi-agent retrieval-augmented generation (RAG) system with specialized agent
 
 - 🤖 **Specialized Agents**: Separate RAG agents for HR, Finance, and Tech domains
 - 🎯 **Orchestrator**: Intelligent routing to the appropriate specialist agent(s)
+- 🔀 **Hybrid Ambiguity Handling**: Multi-agent queries for cross-domain ambiguous questions; clarification requests for extremely vague queries
 - 📦 **Vector Stores**: FAISS-based semantic search for each domain
 - 📊 **Observability**: Full tracing with Langfuse to debug misrouted questions and track agent performance
 - ⭐ **Auto-Evaluation**: Automatic quality scoring (1-10) for every response using LLM-as-a-judge, tracked in Langfuse
@@ -99,26 +100,28 @@ To view scores:
 2. Click the "Scores" tab
 3. See `response_quality` score and reasoning
 
-### Debugging Misrouted Questions
+### Debugging Routing Decisions
 
-If a question is sent to the wrong agent:
+**For single-domain queries:**
 1. Find the trace in Langfuse
 2. Examine the orchestrator's routing decision
-3. Check which tools were called
-4. Review the agent selection prompt and response
-5. Identify patterns in misrouted queries
-6. Adjust orchestrator prompt if needed
+3. Check which tool was called
+4. Review the agent selection reasoning
+
+**For ambiguous queries:**
+1. Look for traces where multiple specialist agents were called
+2. Verify the orchestrator correctly identified the ambiguity
+3. Check if all relevant specialists were consulted
+4. Review how responses were synthesized
+
+**For clarification requests:**
+1. Identify traces where `request_clarification` was used
+2. Verify the query was genuinely too vague to route
+3. Check if the clarification question was helpful
+4. Consider if multiple specialists would have been better
 
 ## Limitations
 
 - **No Conversation History**: The system processes each query independently without maintaining conversation context. Users cannot ask follow-up questions like "What about for managers?" or "Tell me more", reference previous answers, or build on earlier context within a session.
 
-- **Evaluation Latency**: Every response undergoes automatic quality evaluation, adding 1-3 seconds of latency per query. This is noticeable in interactive sessions as the system waits for GPT-4o-mini to score the response before returning it to the user.
-
-- **Limited Context Retrieval**: The system retrieves only the top 4 most relevant document chunks per query. For complex questions spanning multiple sections of long documents, some relevant information may be missed.
-
 - **No Real-Time Document Updates**: The knowledge base is frozen at startup. If HR updates the vacation policy document or any other source document, the system won't reflect those changes until you manually rebuild the vector store by deleting the existing FAISS index and restarting.
-
-- **Routing Accuracy**: The LLM-based orchestrator can occasionally misroute edge-case questions, particularly cross-domain questions (e.g., "laptop stipend" could route to Finance or Tech), ambiguous terminology that appears in multiple domains, or questions requiring multiple specialists that may only route to one. 
-
-
